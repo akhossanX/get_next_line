@@ -6,7 +6,7 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/03/31 15:14:47 by akhossan          #+#    #+#             */
-/*   Updated: 2019/03/31 23:15:25 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/16 18:53:37 by abkh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ void	*ft_memccpy(void *dst, const void *src, int c, size_t n)
 		if (((unsigned char *)src)[i] == (unsigned char)c)
 		{
 			((unsigned char *)dst)[i] = ((unsigned char *)src)[i];
-			return (&dst[i + 1]);
+			return (&((unsigned char *)dst)[i + 1]);
 		}
 		((unsigned char *)dst)[i] = ((unsigned char *)src)[i];
 		i++;
