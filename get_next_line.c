@@ -6,7 +6,7 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:03:34 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/17 22:01:30 by abkh             ###   ########.fr       */
+/*   Updated: 2019/04/17 22:42:42 by abkh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,8 @@ int		get_next_line(int fd, char **line)
 			//	return (1);
 		}
 	}
+	if (!*overflow)
+		ft_strdel(&overflow);
 	if (bytes == 0 && **line)
 		return (1);
 	return (bytes < 0 ? -1: 0);
@@ -111,7 +113,11 @@ int		main(int ac, char **av)
 		exit(1);
 	fd = open(av[1], O_RDONLY);
 	while (get_next_line(fd, &line) > 0)
+	{
 		printf(">>[%s]<<\n", line);
+		free(line);
+	}
+	free(line);
 	//printf(">>last[%d]read<<\n", ret);
 	//printf(">>last[%s]read<<\n", line);
 	return (0);
