@@ -6,13 +6,13 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:04:56 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/16 14:49:01 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/17 21:32:40 by abkh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
-# define BUFF_SIZE	2
+# define BUFF_SIZE	9999
 # include <unistd.h>
 # include <stdlib.h>
 # include "libft.h"

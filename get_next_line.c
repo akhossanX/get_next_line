@@ -6,87 +6,113 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:03:34 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/10 18:19:22 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/17 22:01:30 by abkh             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/get_next_line.h"
+#include "get_next_line.h"
+#include "libft.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdio.h>
+#define	ALLOC_LINE(line)		if(!(line = ft_strnew(0))) return (-1)
+#define	ALLOC_OVERFLOW(over)	if(!(over = ft_strnew(BUFF_SIZE))) return (-1)
 
-
-void	memdisp(void *mem, int size)
+/*
+** Joins s2 to s1 and frees the old s1
+*/
+void	ft_strjoinfree(char **s1, char *s2)
 {
-	int		i;
+	char	*tmp;
 
-	i = 0;
-	while (i < size)
-		ft_putchar(((const char *)mem)[i++]);
+	if (s1 && *s1 && s2)
+	{
+		tmp = *s1;
+		*s1 = ft_strjoin(*s1, s2);
+		ft_strdel(&tmp);
+	}
+}
+
+/*
+** Duplicates the string src into dst,
+** and frees the old dst
+*/
+void	ft_strdupfree(char **dst, char *src)
+{
+	char	*tmp;
+
+	if (dst && *dst && src)
+	{
+		tmp = *dst;
+		*dst = ft_strdup(src);
+		ft_strdel(&tmp);
+	}
 }
 
 int		get_next_line(int fd, char **line)
 {
-	char			*buff;
+	static char		*overflow;
+	char			buff[BUFF_SIZE + 1];
 	int				bytes;
-	char			*tmp;
-	int				i;
+	char			*endl;
 
-	if (!(*line = ft_strnew(BUFF_SIZE)) || fd < 0)
-			return (-1);
-	buff = ft_strnew(BUFF_SIZE);
-	ft_memset(*line, 0, ft_strlen(*line));
-	tmp = NULL;
-	bytes = 1;
-	while (bytes > 0)
-	{
-		i = 0;
-		while ((bytes = read(fd, &buff[i], BUFF_SIZE)) > 0 && i < BUFF_SIZE  && buff[i] != '\n')
-			i++;	
-		if (bytes == 0)
-			break ;
-		tmp = *line;
-		*line = ft_strjoin(*line, buff);
-		ft_memdel((void **)(&tmp));
-		if (buff[i] == '\n')
-		{
-			tmp = *line;
-			*line = ft_strsplit(*line, '\n')[0];
-			ft_memdel((void **)(&tmp));
-			break ;
-		}
-		ft_memset(buff, 0, BUFF_SIZE);
-	}
-	ft_memdel((void **)(&buff));
-	if (bytes == 0)
-		return (0);
-	if (bytes == -1)
+	if (fd < 0 || !line)
 		return (-1);
-	return (1);
+	ft_bzero(buff, BUFF_SIZE + 1);
+	ALLOC_LINE(*line);
+	ft_strclr(*line);
+	if (!overflow)
+		ALLOC_OVERFLOW(overflow);
+	/* Is there overflow from previous reading ? */
+	if (*overflow)
+	{
+		if ((endl = ft_strchr(overflow, '\n')))
+		{
+			/* Duplicate code here: DRY /!\ */
+			endl[0] = 0;
+			ft_strjoinfree(line, overflow); 
+			ft_strdupfree(&overflow, endl + 1); 
+			return (1);
+		}
+	}
+	while ((bytes = read(fd, buff, BUFF_SIZE)) > 0 || (bytes == 0 && *overflow))
+	{
+		ft_strjoinfree(&overflow, buff);	
+		if ((endl = ft_strchr(overflow, '\n')))
+		{
+			/* Duplicate code here: DRY /!\ */
+			endl[0] = 0;
+			ft_strjoinfree(line, overflow); 
+			ft_strdupfree(&overflow, endl + 1); 
+			return (1);
+		}
+		else
+		{
+			/* Join overflow with line */
+			ft_strjoinfree(line, overflow);
+			ft_strclr(buff);
+			ft_strclr(overflow);
+			//if (!bytes)
+			//	return (1);
+		}
+	}
+	if (bytes == 0 && **line)
+		return (1);
+	return (bytes < 0 ? -1: 0);
 }
-/*
+
 int		main(int ac, char **av)
 {
-	char	*line = ft_strnew(1);
+	int		fd;
+	char	*line;
+	int		ret;
+
 	if (ac != 2)
-		exit(1);	
-	int fd = open(av[1], O_RDONLY);
-	if (fd <= 0)
-	{
-		printf("Invalid file\n");
 		exit(1);
-	}
-	//get_next_line(fd, &line);
-	//if (!line)
-	//	printf("NULL POINTER RETURNED\n");
-	//printf("%s\n", line);
-	//get_next_line(fd, &line);
-	//if (!line)
-	//	printf("NULL POINTER RETURNED\n");
-	//printf("%s\n", line);
+	fd = open(av[1], O_RDONLY);
 	while (get_next_line(fd, &line) > 0)
-		printf("%s\n", line);
-	memdisp(line, 16);
-	close(fd);
-	free(line);
+		printf(">>[%s]<<\n", line);
+	//printf(">>last[%d]read<<\n", ret);
+	//printf(">>last[%s]read<<\n", line);
+	return (0);
 }
-*/
