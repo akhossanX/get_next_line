@@ -6,7 +6,7 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:03:34 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/18 22:45:49 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/19 19:40:50 by akhossan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,28 +69,30 @@ static void	save_line(char **line, char **overflow, char *endl)
 ** it's taken into consideration by joining it with line
 */
 
-static int	read_line(int fd, char *buff, char **line, char **overflow)
+static int	read_line(int fd, char **buff, char **line, char **overflow)
 {
 	int		flag;
 	char	*endl;
 
-	while ((flag = read(fd, buff, BUFF_SIZE)) > 0 || (flag == 0 && **overflow))
+	while ((flag = read(fd, *buff, BUFF_SIZE)) > 0 || (flag == 0 && **overflow))
 	{
-		ft_strjoinfree(overflow, buff);
+		ft_strjoinfree(overflow, *buff);
 		if ((endl = ft_strchr(*overflow, '\n')))
 		{
 			save_line(line, overflow, endl);
+			ft_strdel(buff);
 			return (1);
 		}
 		else
 		{
 			ft_strjoinfree(line, *overflow);
-			ft_strclr(buff);
+			ft_strclr(*buff);
 			ft_strclr(*overflow);
 		}
 	}
 	if (!**overflow)
 		ft_strdel(overflow);
+	ft_strdel(buff);
 	if (flag == 0 && **line)
 		return (1);
 	return (flag < 0 ? -1 : 0);
@@ -99,11 +101,12 @@ static int	read_line(int fd, char *buff, char **line, char **overflow)
 int			get_next_line(int fd, char **line)
 {
 	static char		*overflow;
-	char			buff[BUFF_SIZE + 1];
+	char			*buff;
 	char			*endl;
 
 	if (fd < 0 || !line || BUFF_SIZE < 1)
 		return (-1);
+	ALLOC_OVERFLOW(buff);
 	ft_bzero(buff, BUFF_SIZE + 1);
 	ALLOC_LINE(*line);
 	ft_strclr(*line);
@@ -114,9 +117,9 @@ int			get_next_line(int fd, char **line)
 		save_line(line, &overflow, endl);
 		return (1);
 	}
-	return (read_line(fd, buff, line, &overflow));
+	return (read_line(fd, &buff, line, &overflow));
 }
-/*
+
 int		main(int ac, char **av)
 {
 	int		fd;
@@ -134,4 +137,3 @@ int		main(int ac, char **av)
 	free(line);
 	return (0);
 }
-*/
