@@ -6,7 +6,7 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:04:56 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/19 20:07:08 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/21 16:20:55 by akhossan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,8 @@
 
 typedef struct		s_filed
 {
-	int				fd_arr[FILED_MAX];
+	int				*fd_arr;
+	int				size;
 	char			**overflow;
 }					t_filed;
 

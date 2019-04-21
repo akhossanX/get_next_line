@@ -6,7 +6,7 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:03:34 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/19 19:40:50 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/21 16:38:10 by akhossan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <stdio.h>
 #define ALLOC_LINE(line)		if(!(line = ft_strnew(0))) return (-1)
 #define ALLOC_OVERFLOW(over)	if(!(over = ft_strnew(BUFF_SIZE))) return (-1)
+#define ALLOC_BUFF(buff)		if(!(buff = ft_strnew(BUFF_SIZE))) return (-1)
 
 /*
 ** Joins s2 to s1 and frees the old s1
@@ -98,26 +99,63 @@ static int	read_line(int fd, char **buff, char **line, char **overflow)
 	return (flag < 0 ? -1 : 0);
 }
 
+/* TODO: MOVE TO LIBFT */
+void		*ft_realloc(void *mem, size_t old_size, size_t new_size)
+{
+	void	*new;
+
+	if (new_size == 0)
+	{
+		ft_memdel(mem);
+		return (NULL);
+	}
+	else if (!mem)
+		return (ft_memalloc(new_size));
+	else if (new_size <= old_size)
+		return (mem);
+	else
+	{
+		new = ft_memalloc(new_size);
+		if (new)
+		{
+			ft_memcpy(new, mem, old_size);
+			ft_memdel(mem);
+		}
+	}
+	return (new);
+}
+/* TODO: MOVE TO LIBFT */
+void		ft_append(int **arr, int fd_val, size_t size)
+{
+	if ((*arr = (int *)ft_realloc(*arr, size, size + 1)))
+		(*arr)[size] = fd_val;	
+}
+
 int			get_next_line(int fd, char **line)
 {
-	static char		*overflow;
+	static t_filed	*fds;
 	char			*buff;
 	char			*endl;
+	int				fd_index;
 
 	if (fd < 0 || !line || BUFF_SIZE < 1)
 		return (-1);
-	ALLOC_OVERFLOW(buff);
-	ft_bzero(buff, BUFF_SIZE + 1);
+	/* Is fd already there? */
+	/* if not just add it   */
+	if (ft_indexof(fds->fd_arr, fd, fds->size) == -1)
+		ft_append(&fds->fd_arr, fd, fds->size);
+	fd_index = ft_indexof(fds->fd_arr, fd, fds->size);
+	ALLOC_BUFF(buff);
 	ALLOC_LINE(*line);
 	ft_strclr(*line);
-	if (!overflow)
-		ALLOC_OVERFLOW(overflow);
-	if (*overflow && (endl = ft_strchr(overflow, '\n')))
+	if (!fds->overflow[fd_index])
+		ALLOC_OVERFLOW(fds->overflow[fd_index]);
+	if (*fds->overflow[fd_index] && (endl = ft_strchr(fds->overflow[fd_index], '\n')))
 	{
-		save_line(line, &overflow, endl);
+		save_line(line, &(fds->overflow[fd_index]), endl);
 		return (1);
 	}
-	return (read_line(fd, &buff, line, &overflow));
+	return (read_line(fd, &buff, line, &(fds->overflow[fd_index])));
 }
 
 int		main(int ac, char **av)
