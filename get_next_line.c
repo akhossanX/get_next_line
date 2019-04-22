@@ -6,15 +6,12 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:03:34 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/22 15:33:51 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/22 21:40:07 by akhossan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 #include "libft.h"
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
 
 /*
 ** Joins s2 to s1 and frees the old s1
@@ -98,40 +95,20 @@ static int	read_line(int fd, char **buff, char **line, char **overflow)
 
 int			get_next_line(int fd, char **line)
 {
-	static char		*overflow;
+	static char		*overflow[FD_MAX];
 	char			*buff;
 	char			*endl;
 
 	if (fd < 0 || !line || BUFF_SIZE < 1)
 		return (-1);
-	buff = ft_strnew(BUFF_SIZE);
 	ALLOC_LINE(*line);
-	if (!overflow)
-		ALLOC_OVERFLOW(overflow);
-	if (*overflow && (endl = ft_strchr(overflow, '\n')))
+	if (!overflow[fd])
+		ALLOC_OVERFLOW(overflow[fd]);
+	if (*overflow[fd] && (endl = ft_strchr(overflow[fd], '\n')))
 	{
-		save_line(line, &overflow, endl);
+		save_line(line, &overflow[fd], endl);
 		return (1);
 	}
-	return (read_line(fd, &buff, line, &overflow));
+	buff = ft_strnew(BUFF_SIZE);
+	return (read_line(fd, &buff, line, &overflow[fd]));
 }
-/*
-**
-int		main(int ac, char **av)
-{
-	int		fd;
-	char	*line;
-	int		ret;
-
-	if (ac != 2)
-		exit(1);
-	fd = open(av[1], O_RDONLY);
-	while ((ret = get_next_line(fd, &line)) > 0)
-	{
-		printf("%s\n", line);
-		free(line);
-	}
-	free(line);
-	return (0);
-}
-*/
