@@ -6,7 +6,7 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:03:34 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/21 16:38:10 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/22 14:42:59 by akhossan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 #define ALLOC_LINE(line)		if(!(line = ft_strnew(0))) return (-1)
 #define ALLOC_OVERFLOW(over)	if(!(over = ft_strnew(BUFF_SIZE))) return (-1)
 #define ALLOC_BUFF(buff)		if(!(buff = ft_strnew(BUFF_SIZE))) return (-1)
+
+int			ft_indexof(int *arr, int fd_val, size_t size);
 
 /*
 ** Joins s2 to s1 and frees the old s1
@@ -124,26 +126,44 @@ void		*ft_realloc(void *mem, size_t old_size, size_t new_size)
 	}
 	return (new);
 }
+
 /* TODO: MOVE TO LIBFT */
-void		ft_append(int **arr, int fd_val, size_t size)
+t_filed		*ft_fdinit(int *fds, size_t len)
 {
-	if ((*arr = (int *)ft_realloc(*arr, size, size + 1)))
-		(*arr)[size] = fd_val;	
+	t_filed		*fd;
+
+	if (!(fd = ft_memalloc(sizeof(t_filed))))
+		return (NULL);
+	if (!fds || len == 0)
+	{
+		fd->fd_arr = NULL;
+		fd->overflow = (char **)ft_memalloc(sizeof(char *));
+	}
+	else
+		ft_memcpy(fd->fd_arr, fds, sizeof(int) * len);
+	fd->size = len;	
+	return (fd);
 }
 
 int			get_next_line(int fd, char **line)
 {
-	static t_filed	*fds;
+	static t_filed	*fds = NULL;
 	char			*buff;
 	char			*endl;
 	int				fd_index;
 
 	if (fd < 0 || !line || BUFF_SIZE < 1)
 		return (-1);
+	if (!fds)
+		fds = ft_fdinit(NULL, 0);
 	/* Is fd already there? */
 	/* if not just add it   */
 	if (ft_indexof(fds->fd_arr, fd, fds->size) == -1)
-		ft_append(&fds->fd_arr, fd, fds->size);
+	{
+		fds->fd_arr = ft_realloc((void *)fds->fd_arr, fds->size, fds->size + 1);
+		fds->fd_arr[fds->size] = fd;
+		fds->size++;
+	}
 	fd_index = ft_indexof(fds->fd_arr, fd, fds->size);
 	ALLOC_BUFF(buff);
 	ALLOC_LINE(*line);
