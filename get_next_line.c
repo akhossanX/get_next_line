@@ -6,7 +6,7 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:03:34 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/18 22:45:49 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/22 15:33:51 by akhossan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
-#define ALLOC_LINE(line)		if(!(line = ft_strnew(0))) return (-1)
-#define ALLOC_OVERFLOW(over)	if(!(over = ft_strnew(BUFF_SIZE))) return (-1)
 
 /*
 ** Joins s2 to s1 and frees the old s1
@@ -69,26 +67,28 @@ static void	save_line(char **line, char **overflow, char *endl)
 ** it's taken into consideration by joining it with line
 */
 
-static int	read_line(int fd, char *buff, char **line, char **overflow)
+static int	read_line(int fd, char **buff, char **line, char **overflow)
 {
 	int		flag;
 	char	*endl;
 
-	while ((flag = read(fd, buff, BUFF_SIZE)) > 0 || (flag == 0 && **overflow))
+	while ((flag = read(fd, *buff, BUFF_SIZE)) > 0 || (flag == 0 && **overflow))
 	{
-		ft_strjoinfree(overflow, buff);
+		ft_strjoinfree(overflow, *buff);
 		if ((endl = ft_strchr(*overflow, '\n')))
 		{
 			save_line(line, overflow, endl);
+			ft_strdel(buff);
 			return (1);
 		}
 		else
 		{
 			ft_strjoinfree(line, *overflow);
-			ft_strclr(buff);
+			ft_strclr(*buff);
 			ft_strclr(*overflow);
 		}
 	}
+	ft_strdel(buff);
 	if (!**overflow)
 		ft_strdel(overflow);
 	if (flag == 0 && **line)
@@ -99,14 +99,13 @@ static int	read_line(int fd, char *buff, char **line, char **overflow)
 int			get_next_line(int fd, char **line)
 {
 	static char		*overflow;
-	char			buff[BUFF_SIZE + 1];
+	char			*buff;
 	char			*endl;
 
 	if (fd < 0 || !line || BUFF_SIZE < 1)
 		return (-1);
-	ft_bzero(buff, BUFF_SIZE + 1);
+	buff = ft_strnew(BUFF_SIZE);
 	ALLOC_LINE(*line);
-	ft_strclr(*line);
 	if (!overflow)
 		ALLOC_OVERFLOW(overflow);
 	if (*overflow && (endl = ft_strchr(overflow, '\n')))
@@ -114,9 +113,10 @@ int			get_next_line(int fd, char **line)
 		save_line(line, &overflow, endl);
 		return (1);
 	}
-	return (read_line(fd, buff, line, &overflow));
+	return (read_line(fd, &buff, line, &overflow));
 }
 /*
+**
 int		main(int ac, char **av)
 {
 	int		fd;
@@ -128,7 +128,7 @@ int		main(int ac, char **av)
 	fd = open(av[1], O_RDONLY);
 	while ((ret = get_next_line(fd, &line)) > 0)
 	{
-		printf(">>[%s]<<\n", line);
+		printf("%s\n", line);
 		free(line);
 	}
 	free(line);
