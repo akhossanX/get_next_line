@@ -6,7 +6,7 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:04:56 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/22 15:34:33 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/30 19:51:43 by akhossan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,19 +15,16 @@
 
 # define ALLOC_LINE(line)		if(!(line = ft_strnew(0))) return (-1)
 # define ALLOC_OVERFLOW(over)	if(!(over = ft_strnew(BUFF_SIZE))) return (-1)
-# define BUFF_SIZE	10000000
-# define FILED_MAX	4864
+# define BUFF_SIZE	32
+# define FD_MAX	1024
 
-# include <unistd.h>
 # include <stdlib.h>
-# include "libft.h"
+# include "libft/libft.h"
 
-typedef struct		s_filed
-{
-	int				fd_arr[FILED_MAX];
-	char			**overflow;
-}					t_filed;
-
-int					get_next_line(int fd, char **line);
+int			get_next_line(int fd, char **line);
+void		strjoinfree(char **s1, char *s2);
+void		strdupfree(char **dst, char *src);
+void		save_line(char **line, char **overflow, char *endl);
+int			read_line(int fd, char *buff, char **line, char **overflow);
 
 #endif

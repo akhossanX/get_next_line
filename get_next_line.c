@@ -6,21 +6,17 @@
 /*   By: akhossan <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/06 22:03:34 by akhossan          #+#    #+#             */
-/*   Updated: 2019/04/22 15:33:51 by akhossan         ###   ########.fr       */
+/*   Updated: 2019/04/30 19:22:26 by akhossan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include "libft.h"
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
 
 /*
 ** Joins s2 to s1 and frees the old s1
 */
 
-static void	ft_strjoinfree(char **s1, char *s2)
+void		strjoinfree(char **s1, char *s2)
 {
 	char	*tmp;
 
@@ -37,7 +33,7 @@ static void	ft_strjoinfree(char **s1, char *s2)
 ** and frees the old dst
 */
 
-static void	ft_strdupfree(char **dst, char *src)
+void		strdupfree(char **dst, char *src)
 {
 	char	*tmp;
 
@@ -54,11 +50,11 @@ static void	ft_strdupfree(char **dst, char *src)
 ** then update overflow from endl up to the end of overflow
 */
 
-static void	save_line(char **line, char **overflow, char *endl)
+void		save_line(char **line, char **overflow, char *endl)
 {
 	endl[0] = 0;
-	ft_strjoinfree(line, *overflow);
-	ft_strdupfree(overflow, endl + 1);
+	strjoinfree(line, *overflow);
+	strdupfree(overflow, endl + 1);
 }
 
 /*
@@ -67,28 +63,26 @@ static void	save_line(char **line, char **overflow, char *endl)
 ** it's taken into consideration by joining it with line
 */
 
-static int	read_line(int fd, char **buff, char **line, char **overflow)
+int			read_line(int fd, char *buff, char **line, char **overflow)
 {
 	int		flag;
 	char	*endl;
 
-	while ((flag = read(fd, *buff, BUFF_SIZE)) > 0 || (flag == 0 && **overflow))
+	while ((flag = read(fd, buff, BUFF_SIZE)) > 0 || (flag == 0 && **overflow))
 	{
-		ft_strjoinfree(overflow, *buff);
+		strjoinfree(overflow, buff);
 		if ((endl = ft_strchr(*overflow, '\n')))
 		{
 			save_line(line, overflow, endl);
-			ft_strdel(buff);
 			return (1);
 		}
 		else
 		{
-			ft_strjoinfree(line, *overflow);
-			ft_strclr(*buff);
+			strjoinfree(line, *overflow);
+			ft_strclr(buff);
 			ft_strclr(*overflow);
 		}
 	}
-	ft_strdel(buff);
 	if (!**overflow)
 		ft_strdel(overflow);
 	if (flag == 0 && **line)
@@ -96,42 +90,35 @@ static int	read_line(int fd, char **buff, char **line, char **overflow)
 	return (flag < 0 ? -1 : 0);
 }
 
+/*
+** Reads from a file descriptor a hole line
+** we consider a line a series of characters
+** ending with '\n' (line break character)
+** it returns (1) when a line has been read,
+** (0) if EOF (END OF FILE) has been read
+** (-1) if an error occured when reading
+*/
+
 int			get_next_line(int fd, char **line)
 {
-	static char		*overflow;
-	char			*buff;
+	static char		*overflow[FD_MAX];
+	char			buff[BUFF_SIZE + 1];
 	char			*endl;
+	int				flag;
 
-	if (fd < 0 || !line || BUFF_SIZE < 1)
+	if (fd < 0 || !line || BUFF_SIZE < 1 || fd > FD_MAX)
 		return (-1);
-	buff = ft_strnew(BUFF_SIZE);
 	ALLOC_LINE(*line);
-	if (!overflow)
-		ALLOC_OVERFLOW(overflow);
-	if (*overflow && (endl = ft_strchr(overflow, '\n')))
+	if (!overflow[fd])
+		ALLOC_OVERFLOW(overflow[fd]);
+	if (*overflow[fd] && (endl = ft_strchr(overflow[fd], '\n')))
 	{
-		save_line(line, &overflow, endl);
+		save_line(line, &overflow[fd], endl);
 		return (1);
 	}
-	return (read_line(fd, &buff, line, &overflow));
+	ft_bzero(buff, BUFF_SIZE + 1);
+	flag = read_line(fd, buff, line, &overflow[fd]);
+	if (flag <= 0)
+		ft_strdel(line);
+	return (flag);
 }
-/*
-**
-int		main(int ac, char **av)
-{
-	int		fd;
-	char	*line;
-	int		ret;
-
-	if (ac != 2)
-		exit(1);
-	fd = open(av[1], O_RDONLY);
-	while ((ret = get_next_line(fd, &line)) > 0)
-	{
-		printf("%s\n", line);
-		free(line);
-	}
-	free(line);
-	return (0);
-}
-*/
