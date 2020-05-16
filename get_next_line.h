@@ -13,18 +13,11 @@
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
 
-# define ALLOC_LINE(line)		if(!(line = ft_strnew(0))) return (-1)
-# define ALLOC_OVERFLOW(over)	if(!(over = ft_strnew(BUFF_SIZE))) return (-1)
 # define BUFF_SIZE	32
-# define FD_MAX	1024
+# define FD_MAX		4096
 
-# include <stdlib.h>
-# include "libft/libft.h"
+# include "libft.h"
 
-int			get_next_line(int fd, char **line);
-void		strjoinfree(char **s1, char *s2);
-void		strdupfree(char **dst, char *src);
-void		save_line(char **line, char **overflow, char *endl);
-int			read_line(int fd, char *buff, char **line, char **overflow);
+int			get_next_line(const int fd, char **line);
 
 #endif
